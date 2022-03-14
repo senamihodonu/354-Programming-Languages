@@ -91,9 +91,28 @@ public class Scanner {
 		s.add(";");
 		s.add("--");
 		s.add("---");
+		s.add("<");
+		s.add("<=");
+		s.add(">");
+		s.add(">=");
+		s.add("<>");
+		s.add("==");
 	}
 
+	/**
+	 * keywords token
+	 * @param s
+	 */
 	private void initKeywords(Set<String> s) {
+		s.add("rd");
+		s.add("wr");
+		s.add("if");
+		s.add("then");
+		s.add("else");
+		s.add("while");
+		s.add("do");
+		s.add("begin");
+		s.add("end");
 	}
 
 	// constructor:
