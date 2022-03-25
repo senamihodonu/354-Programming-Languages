@@ -7,8 +7,8 @@
 public class Interpreter {
 
     public static void main(String[] args) {
-		args = new String[1];
-		args[0] = "if 1 < 2 then wr 1";
+		//args = new String[1];
+		//args[0] = "if 1 < 2 then wr 1";
 	Parser parser=new Parser();
 	
 	Environment env=new Environment();
