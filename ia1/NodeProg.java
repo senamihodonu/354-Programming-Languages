@@ -1,21 +1,23 @@
 /**
  * Node containing the NodeStmt field
- */ 
-public abstract class NodeStmt extends Node {
+ */
+public class NodeProg extends Node {
 
+	private NodeBlock block;
 
 	/**
 	 * NodeStmt constructor
-	 * @param assn
+	 * @param block
 	 */
-	public NodeStmt() {
-	
+	public NodeProg(NodeBlock block) {
+		this.block = block;
 	}
 
 	/**
 	 * Evaluates a given assignment expression
 	 */
 	public double eval(Environment env) throws EvalException {
-		throw new EvalException(pos,"cannot eval() nodeStmts!");
-		}
+		return block.eval(env);
+	}
+
 }

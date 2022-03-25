@@ -1,21 +1,23 @@
 /**
  * Node containing the NodeStmt field
- */ 
-public abstract class NodeStmt extends Node {
+ */
+public class NodeAssnStmt extends NodeStmt {
 
+	private NodeAssn assn;
 
 	/**
 	 * NodeStmt constructor
 	 * @param assn
 	 */
-	public NodeStmt() {
-	
+	public NodeAssnStmt(NodeAssn assn) {
+		this.assn = assn;
 	}
 
 	/**
 	 * Evaluates a given assignment expression
 	 */
 	public double eval(Environment env) throws EvalException {
-		throw new EvalException(pos,"cannot eval() nodeStmts!");
-		}
+		return assn.eval(env);
+	}
+
 }

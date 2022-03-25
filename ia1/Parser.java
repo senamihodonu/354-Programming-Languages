@@ -69,6 +69,59 @@ public class Parser {
 		} 
 		return null;
 	}
+
+	/**
+	 * parsing NodeRelop operators
+	 * @return
+	 * @throws SyntaxException
+	 */
+	private NodeRelop parseRelop() throws SyntaxException {
+		if (curr().equals(new Token("<"))) {
+			match("<");
+			return new NodeRelop(pos(), "<");
+		}
+		if (curr().equals(new Token("<="))) {
+			match("<=");
+			return new NodeRelop(pos(), "<=");
+		}
+		if (curr().equals(new Token(">"))) {
+			match(">");
+			return new NodeRelop(pos(), ">");
+		} 
+		if (curr().equals(new Token(">="))) {
+			match(">=");
+			return new NodeRelop(pos(), ">=");
+		}
+		if (curr().equals(new Token("<>"))) {
+			match("<>");
+			return new NodeRelop(pos(), "<>");
+		}
+		if (curr().equals(new Token("=="))) {
+			match("==");
+			return new NodeRelop(pos(), "==");
+		} 
+		return null;
+	}
+
+	private NodeBoolExpr parseBoolExpr() throws SyntaxException{
+		NodeExpr expr = parseExpr();
+		NodeRelop relop = parseRelop();
+		if(relop == null)
+			return new NodeBoolExpr(expr, null, null);
+		
+		return null;
+	}
+
+	private NodeBlock parseBlock() throws SyntaxException{
+		NodeStmt stmt = parseStmt();
+		if (curr().equals(new Token(";"))) {
+			match(";");
+			NodeBlock block = parseBlock();
+			return new NodeBlock(stmt, block);
+		} else {
+			return new NodeBlock(stmt, null);
+		}
+	}
 	
 	/**
 	 * fact parsing
@@ -141,9 +194,44 @@ public class Parser {
 	 * @throws SyntaxException
 	 */
 	private NodeStmt parseStmt() throws SyntaxException {
+		
+		if (curr().tok().equals("if")) {
+			match("if");
+			NodeExpr expr1 = parseExpr();
+			NodeRelop relop = parseRelop();
+			NodeExpr expr2 = parseExpr();
+			NodeBoolExpr bool = new NodeBoolExpr(expr1, relop, expr2);
+			match("then");
+			NodeStmt stmt = parseStmt();
+			NodeStmt elseStmt = null;
+			if (curr().tok().equals("else")) {
+				match("else");
+				elseStmt = parseStmt();
+			}
+			return new NodeIfStmt(bool, stmt, elseStmt);
+
+		}
+
+		if(curr().tok().equals("wr")){
+			match("wr");
+			NodeExpr expr = parseExpr();
+
+			NodeWr nodeWr = new NodeWr(expr);
+			return nodeWr;
+		}
+
+		if(curr().tok().equals("rd")){
+			match("rd");
+			String id = curr().lex();
+			match("id");
+
+			NodeRd nodeRd = new NodeRd(id);
+			return nodeRd;
+
+		}
+		
 		NodeAssn assn = parseAssn();
-		match(";");
-		NodeStmt stmt = new NodeStmt(assn);
+		NodeStmt stmt = new NodeAssnStmt(assn);
 		return stmt;
 	}
 
@@ -155,10 +243,10 @@ public class Parser {
 	 */
 	public Node parse(String program) throws SyntaxException {
 		scanner = new Scanner(program);
-		scanner.next();
-		NodeStmt stmt = parseStmt();
+		boolean x = scanner.next();
+		NodeBlock block = parseBlock();
 		match("EOF");
-		return stmt;
+		return block;
 	}
 
 }
