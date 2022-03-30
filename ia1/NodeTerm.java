@@ -1,7 +1,5 @@
 /**
- * 
- * @author senam
- *
+ * NodeTern field
  */
 public class NodeTerm extends Node {
 
@@ -9,6 +7,12 @@ public class NodeTerm extends Node {
 	private NodeMulop mulop;
 	private NodeTerm term;
 
+	/**
+	 * NodeTerm constructor
+	 * @param fact
+	 * @param mulop
+	 * @param term
+	 */
 	public NodeTerm(NodeFact fact, NodeMulop mulop, NodeTerm term) {
 		this.fact = fact;
 		this.mulop = mulop;

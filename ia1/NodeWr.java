@@ -1,12 +1,12 @@
 /**
- * Node containing the assignment field
+ * Wr node class
  */
 public class NodeWr extends NodeStmt {
 
 	private NodeExpr expr;
 	
 	/**
-	 * Node assignment constructor
+	 * Wr node constructor
 	 * @param id
 	 * @param expr
 	 */
@@ -16,7 +16,7 @@ public class NodeWr extends NodeStmt {
 	}
 	
 	/**
-	 * Evaluates Assignment
+	 * Evaluate method for the Wr
 	 */
 	public double eval(Environment env) throws EvalException {
         System.out.println(expr.eval(env));

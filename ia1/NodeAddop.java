@@ -11,7 +11,7 @@ public class NodeAddop extends Node {
 	}
 
 	/**
-	 * Integer addition
+	 * Integer addition eval
 	 * 
 	 * @param o1
 	 * @param o2
@@ -27,7 +27,7 @@ public class NodeAddop extends Node {
 	}
 
 	/**
-	 * Double addition
+	 * Double addition eval
 	 * 
 	 * @param o1
 	 * @param o2

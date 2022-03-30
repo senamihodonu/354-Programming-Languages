@@ -13,7 +13,7 @@ public abstract class NodeStmt extends Node {
 	}
 
 	/**
-	 * Evaluates a given assignment expression
+	 * NodeStmt eval method
 	 */
 	public double eval(Environment env) throws EvalException {
 		throw new EvalException(pos,"cannot eval() nodeStmts!");

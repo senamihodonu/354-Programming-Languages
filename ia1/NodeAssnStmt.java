@@ -14,7 +14,7 @@ public class NodeAssnStmt extends NodeStmt {
 	}
 
 	/**
-	 * Evaluates a given assignment expression
+	 * Assignment statement eval method
 	 */
 	public double eval(Environment env) throws EvalException {
 		return assn.eval(env);

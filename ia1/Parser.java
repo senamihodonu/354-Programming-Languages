@@ -104,12 +104,14 @@ public class Parser {
 	}
 
 	private NodeBoolExpr parseBoolExpr() throws SyntaxException{
-		NodeExpr expr = parseExpr();
+		NodeExpr expr1 = parseExpr();
 		NodeRelop relop = parseRelop();
-		if(relop == null)
-			return new NodeBoolExpr(expr, null, null);
-		
-		return null;
+		NodeExpr expr2 = parseExpr();
+
+		if(relop == null){
+			return new NodeBoolExpr(expr1, null, null);
+		}
+		return new NodeBoolExpr(expr1, relop, expr2);
 	}
 
 	private NodeBlock parseBlock() throws SyntaxException{
@@ -195,7 +197,8 @@ public class Parser {
 	 */
 	private NodeStmt parseStmt() throws SyntaxException {
 		
-		if (curr().tok().equals("if")) {
+		//if-then-else
+		if (curr().lex().equals("if")) {
 			match("if");
 			NodeExpr expr1 = parseExpr();
 			NodeRelop relop = parseRelop();
@@ -204,14 +207,41 @@ public class Parser {
 			match("then");
 			NodeStmt stmt = parseStmt();
 			NodeStmt elseStmt = null;
-			if (curr().tok().equals("else")) {
+
+			//else
+			if (curr().lex().equals("else")) {
 				match("else");
 				elseStmt = parseStmt();
+				return new NodeIfStmt(bool, stmt, elseStmt);
 			}
 			return new NodeIfStmt(bool, stmt, elseStmt);
-
 		}
 
+		//while-do-stmt
+		if (curr().tok().equals("while")) {
+			match("while");
+			NodeExpr expr1 = parseExpr();
+			NodeRelop relop = parseRelop();
+			NodeExpr expr2 = parseExpr();
+			NodeBoolExpr bool = new NodeBoolExpr(expr1, relop, expr2);
+			match("do");
+			NodeStmt stmt = parseStmt();
+			
+			return new NodeWhileDoStmt(bool, stmt);
+		}
+
+		//begin - end
+		if (curr().tok().equals("begin")) {
+			match("begin");
+
+			NodeBlock block = parseBlock();
+
+			NodeBeginEnd beginEnd = new NodeBeginEnd(block);
+			match("end");
+			return beginEnd;
+		}
+
+		//wr
 		if(curr().tok().equals("wr")){
 			match("wr");
 			NodeExpr expr = parseExpr();
@@ -220,6 +250,7 @@ public class Parser {
 			return nodeWr;
 		}
 
+		//rd
 		if(curr().tok().equals("rd")){
 			match("rd");
 			String id = curr().lex();

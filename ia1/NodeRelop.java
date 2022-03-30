@@ -5,35 +5,19 @@
 public class NodeRelop extends Node {
 
 	private String relop;
-    private double relopVal;
-    private final double TRUE_VAL = 1.0;
-    private double FALSE_VAL = 0.0;
 
-
-
+	/**
+	 * NodeRelop constructor
+	 * @param pos
+	 * @param relop
+	 */
 	public NodeRelop(int pos, String relop) {
 		this.pos = pos;
 		this.relop = relop;
 	}
 
-// 	/**
-// 	 * Integer addition
-// 	 * 
-// 	 * @param o1
-// 	 * @param o2
-// 	 * @return
-// 	 * @throws EvalException
-// 	 */
-// 	public int op(int o1, int o2) throws EvalException {
-// 		if (addop.equals("+"))
-// 			return o1 + o2;
-// 		if (addop.equals("-"))
-// 			return o1 - o2;
-// 		throw new EvalException(pos, "bogus addop: " + addop);
-// 	}
-
 	/**
-	 * Double addition
+	 * Relop eval method
 	 * 
 	 * @param o1
 	 * @param o2
@@ -45,33 +29,31 @@ public class NodeRelop extends Node {
             return (o1 > o2);
         }
 
-		if (relop.equals(">=")){
+		else if (relop.equals(">=")){
             return (o1 >= o2);
         }
 
 
-		if (relop.equals("<")){
+		else if (relop.equals("<")){
             return (o1 < o2);
         }
 
 
-		if (relop.equals("<=")){
+		else if (relop.equals("<=")){
             return (o1 <= o2);
         }
 
 
-		if (relop.equals("<>")){
+		else if (relop.equals("<>")){
             return (o1 != o2);
         }
 
 
-		if (relop.equals("==")){
+		else if (relop.equals("==")){
             return (o1 == o2);
         }
-
-
-
-		throw new EvalException(pos, "bogus addop: " + relop);
+		
+		throw new EvalException(pos, "bogus relop: " + relop);
 	}
 
 }

@@ -1,0 +1,2 @@
+begin if 1 < 2 then wr 1 end
+

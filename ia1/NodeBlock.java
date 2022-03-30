@@ -18,7 +18,7 @@ public class NodeBlock extends Node {
 	}
 
 	/**
-	 * Evaluates a given assignment expression
+	 * Block eval method
 	 */
 	public double eval(Environment env) throws EvalException {
 		double retVal = stmt.eval(env);

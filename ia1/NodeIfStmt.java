@@ -23,14 +23,13 @@ public class NodeIfStmt extends NodeStmt {
 	 */
 	public double eval(Environment env) throws EvalException {
 
-
         if (boolexpr.eval(env) == TRUE_FLG) {
             return stmt.eval(env);
         }
-        if (elseStmt != null) {
-            return stmt.eval(env);
+        else if (elseStmt != null) {
+            return elseStmt.eval(env);
         }
-		return -1;
+		return FALSE_FLG;
 	}
 
 }

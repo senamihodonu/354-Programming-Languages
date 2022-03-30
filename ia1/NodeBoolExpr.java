@@ -9,9 +9,8 @@ public class NodeBoolExpr extends Node {
 	private final double TRUE_FLG = 1.0;
 	private final double FALSE_FLG = 0.0;
 
-
 	/**
-	 * Node expression constructor
+	 * Boolean expression node constructor
 	 * @param term
 	 * @param addop
 	 * @param expr
@@ -22,9 +21,8 @@ public class NodeBoolExpr extends Node {
 		this.expr2 = expr2;
 	}
 
-
 	/**
-	 * Evaluates a given expression
+	 * BoolExpr eval method
 	 */
 	public double eval(Environment env) throws EvalException {
 		if(expr1 != null && expr2 != null && relop != null){

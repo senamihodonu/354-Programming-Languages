@@ -1,0 +1,2 @@
+if 2 == 3 then wr 1; ~evaluates to null, so nothing is printed~
+wr 0.0

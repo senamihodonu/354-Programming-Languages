@@ -1,0 +1,3 @@
+while 9 == 10 do wr 1; ~evaluates to null, so nothing is printed~
+wr 0
+

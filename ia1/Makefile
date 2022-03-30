@@ -1,6 +1,6 @@
 
 all: 
-	javac *.java;
+	javac *.java; 
 
 clean:
 	/bin/rm -f *.class

@@ -17,7 +17,7 @@ public class NodeAssn extends Node {
 	}
 	
 	/**
-	 * Evaluates Assignment
+	 * Assignment eval method
 	 */
 	public double eval(Environment env) throws EvalException {
 		return env.put(id, expr.eval(env));

@@ -1,0 +1,6 @@
+x = 0; if 1 <> x then wr 1 else wr 0;
+x = 1; if 1 <= x then wr 2 else wr 0;
+x = 2; if 1 < x then wr 3 else wr 0;
+x = 3; if 3 == x then wr 4 else wr 0;
+x = 4; if 5 > x then wr 5 else wr 0;
+x = 5; if 5 >= x then wr 6 else wr 0
