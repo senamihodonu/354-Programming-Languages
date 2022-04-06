@@ -1,0 +1,1 @@
+C:\Users\senam\OneDrive\354-ProgrammingLanguages\CS354-Programming-Languages\learning\rust\hello-rust\target\debug\hello-rust.exe: C:\Users\senam\OneDrive\354-ProgrammingLanguages\CS354-Programming-Languages\learning\rust\hello-rust\src\main.rs

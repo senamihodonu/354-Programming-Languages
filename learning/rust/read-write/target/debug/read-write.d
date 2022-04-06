@@ -1,0 +1,1 @@
+C:\Users\senam\OneDrive\354-ProgrammingLanguages\CS354-Programming-Languages\learning\rust\read-write\target\debug\read-write.exe: C:\Users\senam\OneDrive\354-ProgrammingLanguages\CS354-Programming-Languages\learning\rust\read-write\src\main.rs

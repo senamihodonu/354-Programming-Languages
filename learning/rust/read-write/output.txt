@@ -1,0 +1,1 @@
+word 'Idempotency' word 'It' word 'does' word 'not' word 'matter' word 'how' word 'many' word 'times' word 'you' word 'do' word 'it' word '-' word 'the' word 'end' word 'is' word 'constant' word '....' 
