@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -x
+
+gprolog --consult-file meet.pl
+
