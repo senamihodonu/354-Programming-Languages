@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -x
+
+#go run Customer.go SavingAccount.go Bank.go CheckingAccount.go Account.go
+gccgo -g -c Customer.go
+gccgo -g -c Account.go CheckingAccount.go SavingAccount.go
+gccgo -g -c Bank.go
+gccgo -g -c main.go
+gccgo -g -o main *.o
