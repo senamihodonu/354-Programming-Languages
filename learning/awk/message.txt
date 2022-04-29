@@ -1,0 +1,434 @@
+package IdServer;
+
+import java.rmi.RemoteException;
+import java.rmi.server.ServerNotActiveException;
+import java.rmi.server.UnicastRemoteObject;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
+
+//Date time format MM-dd-yyyy HH:mm:ss
+
+@SuppressWarnings("serial")
+public class IdentityServerBackEnd extends UnicastRemoteObject implements IdentityServerInterface {
+
+    private String name;
+
+    //formats for date and time
+    DateTimeFormatter dataTimeFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss");
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+
+    public IdentityServerBackEnd(String s) throws RemoteException{
+        super();
+        name = s;
+        System.out.println("IdServer: " + name + " server created");
+    }
+
+    /**
+     * Takes in parameters about the user and attempts to create a new unique account for the requester, returns information about the new account if successful and an error if not
+     * @param loginName Login name of the account you want to create
+     * @param realName The name of the user (should be different from login Name)
+     * @param password The hashed password of the new account
+     * @return Returns a string with infomration about the created account
+     * @throws RemoteException
+     */
+    public String createID(String loginName, String realName, String password) throws RemoteException{
+        String returnString = "Failed to create new Identity!";
+        //attempts to connect to the database and check if the username already exists
+        try{
+            String checkName= "Select * FROM heroku_a223c855b3fd89a.identityMasterTable where loginName='"+loginName+"'";
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(checkName);
+            String ip = null;
+
+            if(resultSet.next() == false){
+                //name does not exist go ahead and create a new ID
+
+                //get current time
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                String stringTS = simpleDateFormat.format(timestamp);
+
+                //trys to get the IP address of the connected client
+                try{
+                    ip = getClientHost();
+                }catch(ServerNotActiveException throwables){
+                    throwables.printStackTrace();
+                }
+                //generates a new unique ID
+                UUID uuid = UUID.randomUUID();
+
+                //inserts of the collected and created data into the database creating a new user
+                String insert = "INSERT INTO heroku_a223c855b3fd89a.identityMasterTable VALUES (\""+loginName+"\",\" "+realName+"\",\""+password+"\",\""+ip+"\",\""+stringTS+"\",\""+stringTS+"\",\""+uuid+"\")";
+                PreparedStatement pstmt = sqlConn.prepareStatement(insert);
+                pstmt.executeUpdate();
+
+                //returns a selection of information about the newly created account
+                return "Hello "+realName+" your account with the user Name: "+loginName+" was created with the Unique ID: "+uuid+" at "+stringTS;
+            }else{
+                //name already exists do somthing else
+                returnString = "UserName Already used, Please choose another!";
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            returnString = "Server Error!";
+        }
+
+
+        return returnString;
+    }
+
+
+    /**
+     * Takes in a username and collects information about the specifed username, returns the information if it exists or an error if it does not.
+     * @param loginName the login name you wish to get more information about
+     * @return A string containing information about the username
+     * @throws RemoteException
+     */
+    public String lookupLoginName(String loginName) throws RemoteException{
+        String returnString = "Server Error";
+        String loginNameQuerry = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable WHERE loginName='"+loginName+"'";
+        //attempts connection and to execute querry to find login name
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(loginNameQuerry);
+
+            //returns error if login does not exist
+            if(resultSet.next() == false) {
+                return "User: "+loginName+" does not exist, Please try Another!";
+
+            }else{
+                //if login does exist collects data and builds out string
+                String realName = resultSet.getString("realName");
+                String iPaddress = resultSet.getString("IPaddress");
+                String requestDT = resultSet.getString("requestDT");
+                String lastDTchange = resultSet.getString("lastDTchange");
+                String UUID = resultSet.getString("UUID");
+
+                returnString = "User: "+loginName+" Name: "+realName+" Unique ID: "+UUID+" IP address: "+iPaddress+" Date and Time Created: "+requestDT+
+                        " Last Update: "+lastDTchange;
+
+            }
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return returnString;
+    }
+
+
+    /**
+     * Takes in a user ID and collects information about the specifed user ID, returns the information if it exists or an error if it does not.
+     * @param UUID the unique id that identify the user
+     * @return A string containing information about the username
+     * @throws RemoteException
+     */
+    public String lookupUUID(String UUID) throws RemoteException{            String returnString = "Server Error";
+        String loginNameQuerry = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable WHERE UUID='"+UUID+"'";
+        //attempts connection and to execute querry to find ID
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(loginNameQuerry);
+
+            //returns error if login does not exist
+            if(resultSet.next() == false) {
+                return "Unique ID: "+UUID+" does not exist, Please try Another!";
+
+            }else{
+                //if login does exist collects data and builds out string
+                String realName = resultSet.getString("realName");
+                String iPaddress = resultSet.getString("IPaddress");
+                String requestDT = resultSet.getString("requestDT");
+                String lastDTchange = resultSet.getString("lastDTchange");
+                String loginName = resultSet.getString("loginName");
+
+                returnString = "User: "+loginName+" Name: "+realName+" Unique ID: "+UUID+" IP address: "+iPaddress+" Date and Time Created: "+requestDT+
+                        " Last Update: "+lastDTchange;
+
+            }
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return returnString;
+
+    }
+
+    /**
+     * Changes the login name of user from the old username to the newuser name, this also updated the last change date and time. Requires a correct password
+     * @param oldloginName the current username
+     * @param newloginName the new username to change to
+     * @param password password for the account
+     * @return
+     * @throws RemoteException
+     */
+    public String modifyLoginName(String oldloginName, String newloginName, String password) throws RemoteException{
+        String returnString = "Server Error";
+        String loginNameQuerry = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable WHERE loginName='"+oldloginName+"'";
+        String newloginNameQuerry = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable  WHERE loginName='"+newloginName+"'";
+        //attempts connection and to execute querry to find if the old ID exists
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(newloginNameQuerry);
+            if(resultSet.next() != false){
+                return "Username: "+newloginName+" Already in use please choose another";
+            }
+
+            statement = sqlConn.createStatement();
+            resultSet = statement.executeQuery(loginNameQuerry);
+
+            //if the old name does not exist returns error
+            if(resultSet.next() == false) {
+                return "User: "+oldloginName+" does not exist, Please try Another!";
+            }
+            //gets the password of the user in question
+            String passwordDB = resultSet.getString("password");
+            //if passwords are equal updates the entry and time before returning
+            if(passwordDB.equals(password)){
+                //get current time
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                String stringTS = simpleDateFormat.format(timestamp);
+
+
+                String update = "UPDATE heroku_a223c855b3fd89a.identityMasterTable SET loginName ='"+newloginName+"', lastDTchange='"+stringTS+"' WHERE loginName='"+oldloginName+"'";
+
+                PreparedStatement pstmt = sqlConn.prepareStatement(update);
+                pstmt.executeUpdate();
+                return "User Name updated from: "+oldloginName+" to "+newloginName;
+            }
+            //returns error is password is wrong
+            else{
+                return "Wrong password, please try again";
+            }
+
+
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return returnString;
+    }
+
+    /**
+     * Removes the user from the database completely, requires a password to complete
+     * @param loginName account of the user to be removed
+     * @param password password for said account
+     * @return
+     * @throws RemoteException
+     */
+    public String deleteUser(String loginName, String password) throws RemoteException{
+        String returnString = "Server Error";
+        String loginNameQuerry = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable WHERE loginName='"+loginName+"'";
+        //attempts connection and to execute user exists
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(loginNameQuerry);
+
+            //returns error if user does not exist
+            if(resultSet.next() == false) {
+                return "No Such user: "+loginName;
+            }
+            //gets the password of the user in question
+            String passwordDB = resultSet.getString("password");
+            //if passwords are equal updates deletes the entry from the database and returns
+            if(passwordDB.equals(password)){
+                String update = "DELETE FROM heroku_a223c855b3fd89a.identityMasterTable WHERE loginName='"+loginName+"'";
+
+                PreparedStatement pstmt = sqlConn.prepareStatement(update);
+                pstmt.executeUpdate();
+                return "User :"+loginName+" removed";
+
+                //returns error is password is wrong
+            }else{
+                return "Wrong password, please try again";
+            }
+
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return returnString;
+    }
+
+    /**
+     * gathers and array of all usernames created and returns the array
+     * @return An array of strings containing usernames
+     * @throws RemoteException
+     */
+    public String[] getUsers() throws RemoteException{
+        String selectAll = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable";
+        String getCount = "SELECT COUNT(*) FROM heroku_a223c855b3fd89a.identityMasterTable";
+        //attempts to get count of how many users in the database
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(getCount);
+
+            //returns null if server issue
+            if(resultSet.next() == false) {
+                return null;
+            }else{
+                //gets count and resets statment
+                String totalEntrys = resultSet.getString("COUNT(*)");
+                int total = Integer.parseInt(totalEntrys);
+
+                statement = sqlConn.createStatement();
+                resultSet = statement.executeQuery(selectAll);
+
+                if(resultSet.next() == false) {
+                    return null;
+                }else{
+                    statement = sqlConn.createStatement();
+                    resultSet = statement.executeQuery(selectAll);
+                    //loops threw all usernames and returns an array of user names
+                    String r[] = new String[total];
+                    int i =0;
+                    while(resultSet.next()){
+                        String loginName = resultSet.getString("loginName");
+                        r[i] = loginName;
+                        i++;
+                    }
+                    return r;
+
+                }
+            }
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * gathers and array of all UUIDs created and returns the array
+     * @return An array of strings containing UUIDs
+     * @throws RemoteException
+     */
+    public String[] getUUIDs() throws RemoteException{
+        String selectAll = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable";
+        String getCount = "SELECT COUNT(*) FROM heroku_a223c855b3fd89a.identityMasterTable";
+        //attempts to get count of how many users in the database
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(getCount);
+
+            //returns null if server issue
+            if(resultSet.next() == false) {
+                return null;
+            }else{
+                //gets count and resets statement
+                String totalEntrys = resultSet.getString("COUNT(*)");
+                int total = Integer.parseInt(totalEntrys);
+
+                statement = sqlConn.createStatement();
+                resultSet = statement.executeQuery(selectAll);
+
+                if(resultSet.next() == false) {
+                    return null;
+                }else{
+                    statement = sqlConn.createStatement();
+                    resultSet = statement.executeQuery(selectAll);
+                    //loops threw all usernames and returns an array of UUIDs
+                    String r[] = new String[total];
+                    int i =0;
+                    while(resultSet.next()){
+                        String loginName = resultSet.getString("UUID");
+                        r[i] = loginName;
+                        i++;
+                    }
+                    return r;
+
+                }
+            }
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Gathers all information except for the password about all users and returns
+     * @return an array of strings containing information about the users
+     * @throws RemoteException
+     */
+    public String[] getAll() throws RemoteException{
+        String selectAll = "SELECT * FROM heroku_a223c855b3fd89a.identityMasterTable";
+        String getCount = "SELECT COUNT(*) FROM heroku_a223c855b3fd89a.identityMasterTable";
+        //attempts to get count of how many users in the database
+        try {
+            Connection sqlConn = SQLiteConn.connect();
+            Statement statement = sqlConn.createStatement();
+            ResultSet resultSet = statement.executeQuery(getCount);
+
+            if(resultSet.next() == false) {
+
+            }else{
+                //gets count and resets statement
+                String totalEntrys = resultSet.getString("COUNT(*)");
+                int total = Integer.parseInt(totalEntrys);
+
+                statement = sqlConn.createStatement();
+                resultSet = statement.executeQuery(selectAll);
+                //returns null if server issue
+                if(resultSet.next() == false) {
+                    return null;
+                }else{
+                    //loops threw all users and builds out the data strings before ruturing an array
+                    statement = sqlConn.createStatement();
+                    resultSet = statement.executeQuery(selectAll);
+                    String r[] = new String[total];
+                    int i =0;
+                    String build ="";
+                    while(resultSet.next()){
+                        String loginName = resultSet.getString("loginName");
+                        String realName = resultSet.getString("realName");
+                        String iPaddress = resultSet.getString("IPaddress");
+                        String requestDT = resultSet.getString("requestDT");
+                        String lastDTchange = resultSet.getString("lastDTchange");
+                        String UUID = resultSet.getString("UUID");
+                        build = "User: "+loginName+" Name: "+realName+" Unique ID: "+UUID+" IP address: "+iPaddress+" Date and Time Created: "+requestDT+
+                                " Last Update: "+lastDTchange;
+                        r[i] = build;
+                        i++;
+                    }
+                    return r;
+
+                }
+            }
+        }catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
+    }
+
+//    /**
+//     *
+//     * @param name
+//     * @param registryPort
+//     * @throws RemoteException
+//     */
+//    public void bind(String name, int registryPort) throws RemoteException {
+//        try {
+//            RMIClientSocketFactory rmiClientSocketFactory = new SslRMIClientSocketFactory();
+//            RMIServerSocketFactory rmiServerSocketFactory = new SslRMIServerSocketFactory();
+//            IdentityServerInterface server = (IdentityServerInterface) exportObject(this, 0, rmiClientSocketFactory,
+//                    rmiServerSocketFactory);
+//
+//            Registry registry = LocateRegistry.getRegistry(registryPort);
+//            registry.rebind(name, server);
+//
+//            System.out.println(name + " bound in registry");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            System.out.println("Exception occurred: " + e);
+//        }
+//    }
+
+
+}
